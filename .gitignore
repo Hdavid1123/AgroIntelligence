@@ -1,0 +1,35 @@
+# Secretos y entorno
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+infraestructure/certs/
+
+# Python (servicios y módulos)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# Docker: datos y volúmenes locales de PostgreSQL, MinIO, Kafka y Keycloak
+infraestructure/data/
+infraestructure/volumes/
+
+# Logs
+*.log
+logs/
+
+# IDE y sistema operativo
+.idea/
+.vscode/
+.DS_Store

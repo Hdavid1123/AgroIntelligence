@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "backlog": {
+      "source": "nschurmann/hola-ai",
+      "sourceType": "github",
+      "skillPath": "skills/backlog/SKILL.md",
+      "computedHash": "5d049cf62b34acd788cef28dd1a922a40c1c1db30ec90776bcc6e20daeaa8bfe"
+    },
+    "pair": {
+      "source": "nschurmann/hola-ai",
+      "sourceType": "github",
+      "skillPath": "skills/pair/SKILL.md",
+      "computedHash": "7f3d1eeaaf05a98c39cfb48d77f5ab2c8018e48e7d6609dd510f52e9a6a64af6"
+    },
+    "story": {
+      "source": "nschurmann/hola-ai",
+      "sourceType": "github",
+      "skillPath": "skills/story/SKILL.md",
+      "computedHash": "66091e9764264065458d5f3cf49175b3fd6d91e782fe3aea8a95af7a04a10cfe"
+    }
+  }
+}
