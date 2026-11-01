@@ -63,23 +63,26 @@ Alinear el repositorio con la estructura de `docs/phases.md` y corregir `infraes
 
 ## INF-02 — Docker Compose base
 
-**Etiquetas:** docker, infraestructura
+## Historia
+Como desarrollador, quiero un compose base del entorno local, para levantar la infraestructura con un solo comando y sin configuración manual.
 
-**Descripción:**
-Crear el compose base con red, volúmenes, healthchecks, políticas de reinicio y variables de entorno.
+## Criterios de aceptaci�n
+- [ ] Dado el repositorio con `infrastructure/` ya renombrada, cuando se ejecuta `docker compose config`, entonces el archivo es sint�cticamente v�lido.
+- [ ] Dados los servicios definidos (PostgreSQL y MinIO), cuando se ejecuta `docker compose up -d`, entonces los contenedores arrancan sin errores de configuración.
+- [ ] Dado el stack levantado, cuando se ejecuta `docker compose ps`, entonces los servicios aparecen con su estado correcto.
 
-**Checklist:**
-- [ ] `compose.yaml` con `name: agrointelligence`
-- [ ] Red `agro-net`
-- [ ] Volúmenes `pgdata` y `minio-data`
-- [ ] `env_file: .env`
-- [ ] `restart: unless-stopped`
-- [ ] `docker compose config` válido
+## Plan
+- Definir únicamente los servicios que no dependen de decisiones pendientes: PostgreSQL y MinIO.
+- A�adir red dedicada, vol�menes de persistencia y política de reinicio.
+- Cargar las variables desde `.env` mediante `env_file`.
+- Validar el compose con `docker compose config` y luego con `docker compose up -d`.
 
-**Criterio de aceptación:**
-`docker compose up -d` arranca sin errores y `docker compose ps` muestra los servicios.
+## Fuera de alcance
+- Keycloak, Kafka, CI/CD, backup/restore, hardening y Makefile: cada uno tiene su propio ticket.
 
-**Dependencias:** INF-01.
+## Sugerencias (tu decisión)
+- Si más adelante se suman Keycloak o Kafka, se pueden aislar con perfiles de Compose para no obligar a levantarlos siempre.
+- Los healthchecks pueden quedarse en este ticket o moverse a los tickets de cada servicio; conviene elegir una opci�n para no duplicarlos.
 
 ---
 
