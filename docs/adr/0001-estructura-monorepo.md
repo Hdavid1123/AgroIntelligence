@@ -53,7 +53,7 @@ Un módulo se separa en un servicio independiente solo si cumple al menos uno de
 - Tiene un equipo propietario distinto.
 - Usa un runtime o dependencias incompatibles.
 
-También se renombra la carpeta `infraestructure/` a `infrastructure/`.
+La carpeta de infraestructura se unifica bajo `infrastructure/`.
 
 ## Consecuencias
 
@@ -67,7 +67,6 @@ También se renombra la carpeta `infraestructure/` a `infrastructure/`.
 
 - Separar un módulo más adelante exige mover código y definir contratos.
 - Varios módulos comparten la base de datos del servicio que los contiene hasta que se separan.
-- La estructura de carpetas no coincide todavía con el repositorio actual (`infraestructure/`); hay que renombrarla.
 
 **Neutras:**
 

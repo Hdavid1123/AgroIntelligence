@@ -17,25 +17,25 @@ Tickets para configurar la infraestructura descrita en `docs/phases.md` (Fase 1)
 
 ## Etiquetas sugeridas
 
-`infraestructura`, `docker`, `base de datos`, `almacenamiento`, `autenticación`, `seguridad`, `ci/cd`, `documentación`, `dx`, `opcional`, `api-first`, `git`, `operación`, `backend`, `kafka`.
+`infraestructura`, `docker`, `base de datos`, `almacenamiento`, `autenticación`, `seguridad`, `ci/cd`, `documentación`, `dx`, `opcional`, `api-first`, `git`, `operación`, `backend`.
 
 ## Orden sugerido
 
 ```text
-INF-01 → INF-02 → INF-03 → INF-04 → INF-05 → INF-06
-                                      └→ INF-07 (si aplica)
-INF-03..07 → INF-08 → INF-09
-INF-03 → INF-10 → INF-11 → INF-12
-INF-01 → INF-13
-INF-01 → INF-14 (opcional)
+INF-01 → INF-02 → INF-04 → INF-05 → INF-06
+INF-02 → INF-03 (README, puede ir en paralelo)
+INF-02..06 → INF-07 → INF-08
+INF-02 → INF-09 → INF-10 → INF-11
+INF-01 → INF-12
+INF-01 → INF-13 (opcional)
 ```
 
 Prerrequisitos documentales:
 
 - `ADR-0001` antes de INF-01.
 - `ADR-0004` antes de INF-06.
-- `ADR-0003` antes de INF-07.
 - `ADR-0002` no bloquea ninguna tarjeta de Fase 1; se consulta cuando aparezca el segundo servicio.
+- `ADR-0003` deja Kafka fuera de la línea base, por eso no hay tarjeta de Kafka en el tablero.
 
 ---
 
@@ -49,10 +49,10 @@ Prerrequisitos documentales:
 Alinear el repositorio con la estructura de `docs/phases.md` y corregir `infraestructure` → `infrastructure`.
 
 **Checklist:**
-- [ ] Renombrar `infraestructure/` a `infrastructure/`
-- [ ] Crear `infrastructure/{docker,keycloak,databases,kafka,monitoring,ci-cd,security}/`
-- [ ] Verificar `services/`, `modules/`, `frontend/`, `contracts/` y `docs/`
-- [ ] Actualizar las referencias en la documentación
+- [x] Renombrar `infraestructure/` a `infrastructure/`
+- [x] Crear `infrastructure/{docker,keycloak,databases,kafka,monitoring,ci-cd,security}/`
+- [x] Verificar `services/`, `modules/`, `frontend/`, `contracts/` y `docs/`
+- [x] Actualizar las referencias en la documentación
 
 **Criterio de aceptación:**
 `tree -L 2` coincide con la estructura documentada y no quedan referencias al typo.
@@ -61,7 +61,29 @@ Alinear el repositorio con la estructura de `docs/phases.md` y corregir `infraes
 
 ---
 
-## INF-02 — README de arranque, puertos y credenciales
+## INF-02 — Docker Compose base
+
+**Etiquetas:** docker, infraestructura
+
+**Descripción:**
+Crear el compose base con red, volúmenes, healthchecks, políticas de reinicio y variables de entorno.
+
+**Checklist:**
+- [ ] `compose.yaml` con `name: agrointelligence`
+- [ ] Red `agro-net`
+- [ ] Volúmenes `pgdata` y `minio-data`
+- [ ] `env_file: .env`
+- [ ] `restart: unless-stopped`
+- [ ] `docker compose config` válido
+
+**Criterio de aceptación:**
+`docker compose up -d` arranca sin errores y `docker compose ps` muestra los servicios.
+
+**Dependencias:** INF-01.
+
+---
+
+## INF-03 — README de arranque, puertos y credenciales
 
 **Etiquetas:** documentación, dx
 
@@ -79,29 +101,7 @@ Documentar cómo clonar, configurar `.env`, levantar el stack, puertos, credenci
 **Criterio de aceptación:**
 Un desarrollador nuevo levanta el entorno siguiendo solo el README.
 
-**Dependencias:** INF-01, INF-03.
-
----
-
-## INF-03 — Docker Compose base
-
-**Etiquetas:** docker, infraestructura
-
-**Descripción:**
-Crear el compose base con red, volúmenes, healthchecks, políticas de reinicio y variables de entorno.
-
-**Checklist:**
-- [ ] `compose.yaml` con `name: agrointelligence`
-- [ ] Red `agro-net`
-- [ ] Volúmenes `pgdata`, `minio-data` y `kafka-data`
-- [ ] `env_file: .env`
-- [ ] `restart: unless-stopped`
-- [ ] `docker compose config` válido
-
-**Criterio de aceptación:**
-`docker compose up -d` arranca sin errores y `docker compose ps` muestra los servicios.
-
-**Dependencias:** INF-01.
+**Dependencias:** INF-01, INF-02.
 
 ---
 
@@ -123,7 +123,7 @@ Servicio PostgreSQL con base `agro_help_db`, credenciales por entorno, scripts d
 **Criterio de aceptación:**
 La base de datos es accesible y los datos persisten tras `down/up`.
 
-**Dependencias:** INF-03.
+**Dependencias:** INF-02.
 
 ---
 
@@ -146,7 +146,7 @@ Servicio MinIO con consola, credenciales por entorno, volumen, healthcheck y cre
 **Criterio de aceptación:**
 Consola accesible, buckets creados y datos persistentes.
 
-**Dependencias:** INF-03.
+**Dependencias:** INF-02.
 
 ---
 
@@ -174,29 +174,7 @@ Consola de administración accesible, token obtenible y realm versionado.
 
 ---
 
-## INF-07 — Kafka en modo KRaft (opcional)
-
-**Etiquetas:** kafka, opcional
-
-**Descripción:**
-Kafka de un nodo sin Zookeeper. Solo si ADR-0003 confirma incluirlo en Fase 1.
-
-**Checklist:**
-- [ ] Servicio `kafka`
-- [ ] Configuración KRaft
-- [ ] Volumen `kafka-data`
-- [ ] Healthcheck
-- [ ] Script de creación del topic `prices.raw`
-- [ ] Producir y consumir un mensaje de prueba
-
-**Criterio de aceptación:**
-Broker healthy y mensaje de prueba publicado y consumido.
-
-**Dependencias:** INF-03, ADR-0003 (ver `docs/adr/0003-kafka-opcional.md`).
-
----
-
-## INF-08 — Makefile y smoke test
+## INF-07 — Makefile y smoke test
 
 **Etiquetas:** dx, infraestructura
 
@@ -207,18 +185,18 @@ Comandos `up`, `down`, `logs`, `ps`, `health` y `reset`, más una verificación 
 - [ ] `make up`
 - [ ] `make down`
 - [ ] `make logs`
-- [ ] `make health` (PostgreSQL, MinIO, Keycloak y Kafka si aplica)
+- [ ] `make health` (PostgreSQL, MinIO y Keycloak)
 - [ ] `make reset` con confirmación
 - [ ] Documentar en el README
 
 **Criterio de aceptación:**
 Un comando levanta el stack y reporta la salud de los servicios.
 
-**Dependencias:** INF-03 a INF-07.
+**Dependencias:** INF-02 a INF-06.
 
 ---
 
-## INF-09 — Backup y restore local
+## INF-08 — Backup y restore local
 
 **Etiquetas:** operación, infraestructura
 
@@ -238,7 +216,7 @@ Backup y restore probados localmente.
 
 ---
 
-## INF-10 — Hardening base de contenedores
+## INF-09 — Hardening base de contenedores
 
 **Etiquetas:** seguridad, observabilidad
 
@@ -256,11 +234,11 @@ Imágenes fijadas, usuarios non-root, redes separadas, secretos por entorno y lo
 **Criterio de aceptación:**
 Checklist completo y `docker compose config` válido.
 
-**Dependencias:** INF-03.
+**Dependencias:** INF-02.
 
 ---
 
-## INF-11 — CI con GitHub Actions
+## INF-10 — CI con GitHub Actions
 
 **Etiquetas:** ci/cd
 
@@ -277,11 +255,11 @@ Workflow para validar el compose, el lint y los tests.
 **Criterio de aceptación:**
 CI verde en un PR y sin secretos en los logs.
 
-**Dependencias:** INF-03.
+**Dependencias:** INF-02.
 
 ---
 
-## INF-12 — Protección de `main` y secretos en GitHub
+## INF-11 — Protección de `main` y secretos en GitHub
 
 **Etiquetas:** git, ci/cd
 
@@ -297,11 +275,11 @@ Configurar la rama protegida, PR obligatorio y CI requerido.
 **Criterio de aceptación:**
 Push directo a `main` bloqueado y CI requerido.
 
-**Dependencias:** INF-11.
+**Dependencias:** INF-10.
 
 ---
 
-## INF-13 — Contratos base (OpenAPI / AsyncAPI)
+## INF-12 — Contratos base (OpenAPI / AsyncAPI)
 
 **Etiquetas:** api-first, documentación
 
@@ -320,7 +298,7 @@ Contratos válidos y referenciados desde el README.
 
 ---
 
-## INF-14 — Dockerfile base para servicios Python
+## INF-13 — Dockerfile base para servicios Python
 
 **Etiquetas:** docker, backend
 
@@ -354,7 +332,7 @@ Estos elementos aparecen en la arquitectura, pero no son de Fase 1 y solo genera
 
 # Definition of Done de la Fase 1
 
-- [ ] `docker compose up -d` levanta PostgreSQL, MinIO y Keycloak (y Kafka si se aprobó).
+- [ ] `docker compose up -d` levanta PostgreSQL, MinIO y Keycloak.
 - [ ] Todos los servicios reportan `healthy`.
 - [ ] `docker compose config` es válido.
 - [ ] CI verde en `main`.

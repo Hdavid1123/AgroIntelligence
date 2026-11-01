@@ -80,7 +80,7 @@ AgroIntelligence/
 | `contracts/` | Contratos OpenAPI y esquemas de eventos (AsyncAPI). | No |
 | `docs/` | Arquitectura, fases, ADRs y documentación operativa. | No |
 
-> Nota: el repositorio conserva temporalmente la carpeta `infraestructure/`; el ticket INF-01 la renombra a `infrastructure/` para alinearla con `docs/phases.md`.
+> La carpeta de infraestructura del proyecto es `infrastructure/`.
 
 ### 1.4 Estrategia de evolución
 Se comienza con el menor número de unidades desplegables que permita entregar valor. Un dominio se convierte en servicio independiente cuando exista una justificación técnica (escala, ciclo de despliegue, aislamiento de fallos o equipo propietario). Hasta entonces, vive como módulo dentro del servicio que lo utiliza. Esto evita convertir los siete dominios en siete aplicaciones o en veinte microservicios desde el primer día.

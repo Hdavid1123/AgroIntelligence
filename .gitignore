@@ -5,7 +5,7 @@
 *.pem
 *.key
 *.crt
-infraestructure/certs/
+infrastructure/certs/
 
 # Python (servicios y módulos)
 __pycache__/
@@ -21,9 +21,9 @@ htmlcov/
 dist/
 build/
 
-# Docker: datos y volúmenes locales de PostgreSQL, MinIO, Kafka y Keycloak
-infraestructure/data/
-infraestructure/volumes/
+# Docker: datos y volúmenes locales de PostgreSQL, MinIO y Keycloak
+infrastructure/data/
+infrastructure/volumes/
 
 # Logs
 *.log
