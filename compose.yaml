@@ -1,1 +1,50 @@
 name: agrointelligence
+
+services:
+  postgres:
+    image: postgres:16
+    env_file:
+      - .env
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    networks:
+      - agro-net
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  rustfs:
+    image: rustfs/rustfs:1.0.4
+    env_file:
+      - .env
+    environment:
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - agro-net
+    volumes:
+      - rustfs-data:/data
+    depends_on:
+      volume-permission-helper:
+        condition: service_completed_successfully
+
+  volume-permission-helper:
+    image: alpine:3.21
+    command: chown -R 10001:10001 /data
+    network_mode: none
+    restart: "no"
+    volumes:
+      - rustfs-data:/data
+
+networks:
+  agro-net:
+
+volumes:
+  pgdata:
+  rustfs-data:
