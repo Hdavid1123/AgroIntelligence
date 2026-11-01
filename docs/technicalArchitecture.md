@@ -1,9 +1,9 @@
 # Documento de arquitectura técnica
 ## Proyecto: Plataforma de inteligencia, análisis y predicción de precios agrícolas (AgroHelp)
 
-Versión: 1.0
+Versión: 1.1
 Fecha: Octubre de 2026
-Estilo arquitectónico: Microservicios orientados a eventos (Event-Driven Architecture)
+Estilo arquitectónico: Microservicios orientados a eventos (Event-Driven Architecture), con evolución progresiva desde módulos
 Lenguaje principal: Python
 Enfoque: Escalabilidad, modularidad, trazabilidad y extensibilidad.
 ___
@@ -30,8 +30,8 @@ La arquitectura se construirá siguiendo estos principios:
 
 | Principio | Descripción |
 |---|---|
-| Microservicios | Cada dominio funcional tendrá servicios independientes. |
-| Database per Service | Cada microservicio será propietario de sus datos. |
+| Microservicios | Los dominios con justificación técnica se despliegan como servicios independientes; el resto se mantiene como módulos con límites claros. |
+| Database per Service | Cada servicio es propietario de sus datos. Los módulos comparten la base del servicio que los contiene hasta que se separen. |
 | Event-Driven Architecture | Los servicios se comunicarán mediante eventos cuando corresponda. |
 | API First | Los contratos de comunicación se definirán antes de implementar los servicios. |
 | Stateless Services | Los servicios de consulta no dependerán de estado local persistente. |
@@ -42,21 +42,48 @@ La arquitectura se construirá siguiendo estos principios:
 | Security by Design | La seguridad estará contemplada desde el diseño. |
 
 ### 1.3 Distribución general del proyecto
-Utilizaría un monorepo para organizar todo el código, separando los siete dominios.
+El proyecto se organiza como un monorepo alineado con `docs/phases.md`. La estructura separa unidades desplegables (`services/`), lógica compartida (`modules/`), la aplicación web (`frontend/`), la infraestructura (`infrastructure/`), los contratos (`contracts/`) y la documentación (`docs/`).
 
-agri-intelligence/
-├── 01-data-acquisition/
-├── 02-data-engineering/
-├── 03-data-platform/
-├── 04-machine-learning/
-├── 05-generative-ai/
-├── 06-application-services/
-├── 07-infrastructure/
-├── contracts/
-├── docs/
+```text
+AgroIntelligence/
+├── services/          # unidades desplegables
+│   ├── data-acquisition/
+│   ├── ml-training/
+│   ├── prediction/
+│   └── rag/
+├── modules/           # lógica compartida, no desplegable por sí sola
+│   ├── data-engineering/
+│   ├── data-platform/
+│   └── feature-engineering/
+├── frontend/
+│   └── web-app/
+├── infrastructure/    # Docker, Keycloak, DBs, Kafka, monitoring, CI/CD, security
+│   ├── docker/
+│   ├── keycloak/
+│   ├── databases/
+│   ├── kafka/
+│   ├── monitoring/
+│   ├── ci-cd/
+│   └── security/
+├── contracts/         # OpenAPI / AsyncAPI
+├── docs/              # arquitectura, fases, ADRs
+│   └── adr/
 └── README.md
+```
 
-Cada dominio tendrá sus propios microservicios. Cada microservicio será independiente, tendrá sus dependencias, Dockerfile, pruebas y configuración.
+| Carpeta | Contenido | ¿Se despliega? |
+|---|---|---|
+| `services/` | Servicios ejecutables con su propio Dockerfile, pruebas y configuración. | Sí |
+| `modules/` | Lógica de dominio reutilizable, importada por uno o más servicios. | No por sí sola |
+| `frontend/` | Aplicación web Next.js. | Sí |
+| `infrastructure/` | Docker, Keycloak, bases de datos, Kafka, monitoreo, CI/CD y seguridad. No contiene lógica de negocio. | No |
+| `contracts/` | Contratos OpenAPI y esquemas de eventos (AsyncAPI). | No |
+| `docs/` | Arquitectura, fases, ADRs y documentación operativa. | No |
+
+> Nota: el repositorio conserva temporalmente la carpeta `infraestructure/`; el ticket INF-01 la renombra a `infrastructure/` para alinearla con `docs/phases.md`.
+
+### 1.4 Estrategia de evolución
+Se comienza con el menor número de unidades desplegables que permita entregar valor. Un dominio se convierte en servicio independiente cuando exista una justificación técnica (escala, ciclo de despliegue, aislamiento de fallos o equipo propietario). Hasta entonces, vive como módulo dentro del servicio que lo utiliza. Esto evita convertir los siete dominios en siete aplicaciones o en veinte microservicios desde el primer día.
 
 ## 2. Los siete dominios
 
@@ -65,121 +92,206 @@ Cada dominio tendrá sus propios microservicios. Cada microservicio será indepe
 
 Este dominio no transforma profundamente los datos. Su responsabilidad es conectarse a las fuentes, extraer información y entregarla al siguiente dominio.
 
-Microservicios:
+**Ubicación:** `services/data-acquisition/`
 
-01-data-acquisition/
-├── data-source-service/
-└── data-ingestion-service/
+```text
+services/data-acquisition/
+├── source-management/
+├── connectors/
+├── extraction/
+└── scheduling/
+```
+
+**Despliegue:** servicio independiente. Es el primer servicio del sistema (Fase 2). Se comienza con una sola fuente de precios agrícolas.
 
 ### Dominio 2. Data Engineering
 **Objetivo:** transformar los datos originales en información limpia, estandarizada y preparada para su utilización.
 
-Microservicios:
+**Ubicación:** `modules/data-engineering/`
 
-02-data-engineering/
-├── data-processing-service/
-└── data-quality-service/
+```text
+modules/data-engineering/
+├── ingestion/
+├── cleaning/
+├── normalization/
+├── validation/
+├── transformation/
+└── pipelines/
+```
+
+**Despliegue:** módulo. Se ejecuta dentro del servicio que lo importe y puede separarse si el volumen de procesamiento lo justifica.
+
+**Arquitectura Medallion:**
+- **Bronze:** datos originales.
+- **Silver:** datos limpios y normalizados.
+- **Gold:** datos preparados para análisis y modelos.
+
+Tecnologías previstas: Python, Polars, DuckDB y dbt.
 
 ### Dominio 3. Data Platform
 **Objetivo:** centralizar el almacenamiento, la organización y la disponibilidad de los datos.
 
 Este dominio no debe confundirse con Data Engineering. Uno transforma la información y el otro administra cómo se almacena y se pone a disposición.
 
-Microservicios:
+**Ubicación:** `modules/data-platform/`
 
-03-data-platform/
-├── data-catalog-service/
-└── analytics-service/
+```text
+modules/data-platform/
+├── catalog/
+├── product-management/
+├── region-management/
+├── market-management/
+└── analytics/
+```
+
+**Despliegue:** módulo. Expone sus capacidades a través del servicio que lo contenga.
 
 ### Dominio 4. Machine Learning
-Objetivo: desarrollar, entrenar, evaluar y ejecutar los modelos que predicen el comportamiento de los precios agrícolas.
+**Objetivo:** desarrollar, entrenar, evaluar y ejecutar los modelos que predicen el comportamiento de los precios agrícolas.
 
-Microservicios:
+**Ubicación:**
+- `modules/feature-engineering/` para la ingeniería de variables.
+- `services/ml-training/` para el entrenamiento.
+- `services/prediction/` para la predicción.
 
-04-machine-learning/
-├── feature-engineering-service/
-├── model-training-service/
-└── prediction-service/
+```text
+modules/feature-engineering/
+services/
+├── ml-training/
+└── prediction/
+```
+
+**Despliegue:** `ml-training` y `prediction` como servicios independientes; `feature-engineering` como módulo compartido.
+
+**MLOps:** registro y versionado de modelos con MLflow. Validación temporal obligatoria para evitar contaminación con información futura.
 
 ### Dominio 5. Generative AI
-Objetivo: implementar el sistema RAG para consultar información documental y estructurada mediante lenguaje natural.
+**Objetivo:** implementar el sistema RAG para consultar información documental y estructurada mediante lenguaje natural.
 
-Microservicios:
+**Ubicación:** `services/rag/`
 
-05-generative-ai/
-├── document-processing-service/
-├── vector-search-service/
-└── rag-service/
+```text
+services/rag/
+├── document-processing/
+├── embeddings/
+├── retrieval/
+└── generation/
+```
+
+**Despliegue:** servicio independiente. Usa `pgvector` como base vectorial.
+
+**Regla:** el RAG no inventa predicciones ni realiza cálculos estadísticos por su cuenta. Consume los resultados de los servicios especializados y cita sus fuentes.
 
 ### Dominio 6. Application Services
-Objetivo: proporcionar los servicios que necesita la aplicación para interactuar con los usuarios.
+**Objetivo:** proporcionar los servicios que necesita la aplicación para interactuar con los usuarios.
 
-Microservicios:
+**Ubicación:**
+- Identidad: Keycloak.
+- Perfiles, preferencias y notificaciones: módulos o servicios según necesidad.
+- API Gateway: diferido hasta que existan al menos dos servicios.
 
-06-application-services/
-├── identity-service/
-├── user-service/
-├── notification-service/
-└── api-gateway/
+1. **Identity Service**
 
-1. Identity Service
+   Autenticación, autorización y gestión de roles con Keycloak. Realm `agrohelp`, clientes `web-app` y `api`, roles `admin` y `analyst`.
 
-Autenticación, autorización y gestión de roles. Recomiendo Keycloak.
+2. **User Service**
 
-2. User Service
+   Gestiona perfiles, preferencias, productos favoritos e historial de consultas. Inicialmente puede vivir como módulo.
 
-Gestiona perfiles, preferencias, productos favoritos e historial de consultas.
+3. **Notification Service**
 
-3. Notification Service
+   Gestiona alertas sobre precios, predicciones y actualizaciones. Inicialmente puede vivir como módulo.
 
-Gestiona alertas sobre precios, predicciones y actualizaciones.
+4. **API Gateway**
 
-4. API Gateway
+   Centraliza las solicitudes del frontend y las distribuye a los microservicios correspondientes. **No se implementa en Fase 1**; ver ADR-02.
 
-Centraliza las solicitudes del frontend y las distribuye a los microservicios correspondientes.
+**Frontend:**
 
-El frontend estará organizado independientemente:
+```text
+frontend/web-app/
+├── app/                 # rutas Next.js (App Router)
+├── components/          # componentes reutilizables
+├── features/            # dashboard, products, markets, analytics, predictions, assistant, users
+├── services/            # clientes de API
+├── hooks/
+└── types/
+```
 
-frontend/
-└── web-app/
-    ├── app/
-    ├── components/
-    ├── services/
-    ├── hooks/
-    └── types/
+Tecnologías: Next.js, React y TypeScript.
 
-Utilizaría Next.js, React y TypeScript.
-
-## Dominio 7. Infrastructure
-
-Objetivo: proporcionar toda la infraestructura necesaria para ejecutar, comunicar, desplegar y monitorear los microservicios.
+### Dominio 7. Infrastructure
+**Objetivo:** proporcionar toda la infraestructura necesaria para ejecutar, comunicar, desplegar y monitorear los microservicios.
 
 Aquí no desarrollaremos lógica de negocio.
 
-07-infrastructure/
+**Ubicación:** `infrastructure/`
+
+```text
+infrastructure/
 ├── docker/
-├── kubernetes/
-├── helm/
-├── terraform/
+├── kubernetes/     # futuro
+├── helm/           # futuro
+├── terraform/      # futuro
 ├── kafka/
 ├── databases/
 ├── monitoring/
 ├── ci-cd/
 └── security/
+```
 
-Componentes principales:
+**Despliegue:** no contiene lógica de negocio. En Fase 1 solo se implementa lo necesario para el entorno local con Docker Compose; Kubernetes, Helm y Terraform se incorporan más adelante.
 
-| Componente | Tecnología |
+## 3. Infraestructura y despliegue
+
+### 3.1 Fase 1: infraestructura local
+La Fase 1 prepara el entorno para desarrollar y desplegar los componentes. El criterio de salida es que `docker compose up -d` levante el entorno y todos los servicios reporten salud.
+
+| Componente | Implementación en Fase 1 |
 |---|---|
-| Contenedores | Docker |
-| Orquestación | Kubernetes |
-| Comunicación asíncrona | Kafka |
+| Contenedores | Docker + Docker Compose |
 | Base de datos | PostgreSQL |
-| Almacenamiento | MinIO |
-| Vector DB | pgvector |
-| Monitoreo | Prometheus + Grafana |
-| Logs | Loki |
-| Trazas | OpenTelemetry |
+| Almacenamiento de objetos | MinIO |
+| Autenticación | Keycloak |
+| Comunicación asíncrona | Kafka en modo KRaft (opcional) |
 | CI/CD | GitHub Actions |
+| API Gateway | Diferido (ADR-02) |
+| Orquestación productiva | Kubernetes / Helm / Terraform: futuro |
 
-## 3. Comunicación de los dominios
+### 3.2 Componentes y fase de introducción
+| Componente | Tecnología | Fase |
+|---|---|---|
+| Contenedores | Docker | 1 |
+| Orquestación local | Docker Compose | 1 |
+| Base de datos | PostgreSQL | 1 |
+| Almacenamiento | MinIO | 1 |
+| Autenticación | Keycloak | 1 |
+| Comunicación asíncrona | Kafka | 1 (opcional) |
+| CI/CD | GitHub Actions | 1 |
+| API Gateway | — | Diferido |
+| Orquestación productiva | Kubernetes + Helm + Terraform | Futura |
+| Vector DB | pgvector | 6 |
+| Monitoreo | Prometheus + Grafana | Futura |
+| Logs | Loki | Futura |
+| Trazas | OpenTelemetry | Futura |
+
+### 3.3 Decisiones diferidas
+- **API Gateway:** no se implementa hasta que existan al menos dos servicios que centralizar.
+- **Kafka:** opcional en Fase 1; se activa cuando haya comunicación asíncrona real.
+- **Kubernetes, Helm y Terraform:** se incorporan cuando el despliegue local ya no sea suficiente.
+- **Observabilidad completa:** Prometheus, Grafana, Loki y OpenTelemetry se añaden después de estabilizar el entorno local.
+
+### 3.4 ADRs
+Las decisiones arquitectónicas se documentan en `docs/adr/`:
+
+- `0001-estructura-monorepo.md`
+- `0002-api-gateway.md`
+- `0003-kafka-opcional.md`
+- `0004-keycloak-roles.md`
+
+## 4. Comunicación de los dominios
+
+- **Síncrona:** APIs REST documentadas con OpenAPI. Los contratos viven en `contracts/`.
+- **Asíncrona:** eventos con Kafka y esquemas versionados. Los contratos de eventos viven en `contracts/events/`.
+- **API First:** ningún servicio se implementa sin su contrato acordado.
+- **Database per Service:** cada servicio es dueño de sus datos; los módulos acceden a los datos a través del servicio propietario.
