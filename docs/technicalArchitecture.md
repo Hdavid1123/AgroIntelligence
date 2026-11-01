@@ -282,12 +282,12 @@ La Fase 1 prepara el entorno para desarrollar y desplegar los componentes. El cr
 - **Observabilidad completa:** Prometheus, Grafana, Loki y OpenTelemetry se añaden después de estabilizar el entorno local.
 
 ### 3.4 ADRs
-Las decisiones arquitectónicas se documentan en `docs/adr/`:
+Las decisiones arquitectónicas se documentan en [`docs/adr/`](adr/README.md):
 
-- `0001-estructura-monorepo.md`
-- `0002-api-gateway.md`
-- `0003-kafka-opcional.md`
-- `0004-keycloak-roles.md`
+- [ADR-0001: Estructura del monorepo y límites entre módulos y servicios](adr/0001-estructura-monorepo.md)
+- [ADR-0002: Diferir el API Gateway](adr/0002-api-gateway.md)
+- [ADR-0003: Kafka opcional en Fase 1](adr/0003-kafka-opcional.md)
+- [ADR-0004: Keycloak y modelo de roles](adr/0004-keycloak-roles.md)
 
 ## 4. Comunicación de los dominios
 

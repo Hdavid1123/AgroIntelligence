@@ -5,7 +5,6 @@ Tickets para configurar la infraestructura descrita en `docs/phases.md` (Fase 1)
 ## Cómo usar este archivo
 
 1. Crea un tablero con estas listas:
-   - `Decisiones`
    - `Backlog Fase 1`
    - `En curso`
    - `Hecho`
@@ -14,14 +13,16 @@ Tickets para configurar la infraestructura descrita en `docs/phases.md` (Fase 1)
 4. Pega el checklist en la descripción de la tarjeta o conviértelo en checklist de Trello.
 5. Respeta las dependencias indicadas antes de mover una tarjeta a `En curso`.
 
+> Los ADRs viven en `docs/adr/` y no se gestionan como tarjetas de Trello. Son documentación versionada y se consultan como prerrequisito de las tarjetas que los necesitan.
+
 ## Etiquetas sugeridas
 
-`infraestructura`, `docker`, `base de datos`, `almacenamiento`, `autenticación`, `seguridad`, `ci/cd`, `documentación`, `dx`, `decisión`, `opcional`, `api-first`.
+`infraestructura`, `docker`, `base de datos`, `almacenamiento`, `autenticación`, `seguridad`, `ci/cd`, `documentación`, `dx`, `opcional`, `api-first`, `git`, `operación`, `backend`, `kafka`.
 
 ## Orden sugerido
 
 ```text
-ADR-01 → INF-01 → INF-02 → INF-03 → INF-04 → INF-05 → INF-06
+INF-01 → INF-02 → INF-03 → INF-04 → INF-05 → INF-06
                                       └→ INF-07 (si aplica)
 INF-03..07 → INF-08 → INF-09
 INF-03 → INF-10 → INF-11 → INF-12
@@ -29,87 +30,12 @@ INF-01 → INF-13
 INF-01 → INF-14 (opcional)
 ```
 
----
+Prerrequisitos documentales:
 
-# Lista: Decisiones
-
-## ADR-01 — Estructura del monorepo y límites módulo/servicio
-
-**Etiquetas:** arquitectura, decisión
-
-**Descripción:**
-Documentar la estructura `services/`, `modules/`, `frontend/`, `infrastructure/`, `contracts/` y `docs/`, y el criterio para separar un módulo en un servicio independiente.
-
-**Checklist:**
-- [ ] Crear `docs/adr/0001-estructura-monorepo.md`
-- [ ] Incluir contexto, decisión y consecuencias
-- [ ] Definir el criterio para crear un nuevo servicio
-- [ ] Verificar que `technicalArchitecture.md` refleja la decisión
-
-**Criterio de aceptación:**
-El ADR explica dónde vive cada dominio y cuándo se despliega de forma independiente.
-
-**Dependencias:** ninguna.
-
----
-
-## ADR-02 — API Gateway: diferir
-
-**Etiquetas:** arquitectura, decisión
-
-**Descripción:**
-Decidir si se implementa un API Gateway en Fase 1. Recomendación: diferirlo hasta tener al menos dos servicios que centralizar.
-
-**Checklist:**
-- [ ] Crear `docs/adr/0002-api-gateway.md`
-- [ ] Describir contexto y alternativas
-- [ ] Registrar la decisión y sus consecuencias
-- [ ] Definir el criterio para reevaluar
-
-**Criterio de aceptación:**
-Decisión documentada y aceptada.
-
-**Dependencias:** ninguna.
-
----
-
-## ADR-03 — Kafka opcional en Fase 1
-
-**Etiquetas:** arquitectura, decisión, opcional
-
-**Descripción:**
-Documentar por qué Kafka es opcional al inicio y en qué momento activarlo.
-
-**Checklist:**
-- [ ] Crear `docs/adr/0003-kafka-opcional.md`
-- [ ] Incluir contexto, decisión y consecuencias
-- [ ] Proponer los topics iniciales
-- [ ] Definir el disparador para activarlo
-
-**Criterio de aceptación:**
-Decisión documentada y aceptada.
-
-**Dependencias:** ninguna.
-
----
-
-## ADR-04 — Keycloak y modelo de roles
-
-**Etiquetas:** seguridad, decisión
-
-**Descripción:**
-Definir el realm, los clientes y los roles iniciales (`admin`, `analyst`) de Keycloak.
-
-**Checklist:**
-- [ ] Crear `docs/adr/0004-keycloak-roles.md`
-- [ ] Definir clientes `web-app` y `api`
-- [ ] Definir roles y permisos
-- [ ] Definir un usuario de prueba solo para desarrollo
-
-**Criterio de aceptación:**
-Modelo de roles documentado y reflejado en el realm.
-
-**Dependencias:** ninguna.
+- `ADR-0001` antes de INF-01.
+- `ADR-0004` antes de INF-06.
+- `ADR-0003` antes de INF-07.
+- `ADR-0002` no bloquea ninguna tarjeta de Fase 1; se consulta cuando aparezca el segundo servicio.
 
 ---
 
@@ -131,7 +57,7 @@ Alinear el repositorio con la estructura de `docs/phases.md` y corregir `infraes
 **Criterio de aceptación:**
 `tree -L 2` coincide con la estructura documentada y no quedan referencias al typo.
 
-**Dependencias:** ninguna.
+**Dependencias:** ADR-0001 (ver `docs/adr/0001-estructura-monorepo.md`).
 
 ---
 
@@ -244,7 +170,7 @@ Keycloak con PostgreSQL como backend, realm `agrohelp`, clientes `web-app` y `ap
 **Criterio de aceptación:**
 Consola de administración accesible, token obtenible y realm versionado.
 
-**Dependencias:** INF-04.
+**Dependencias:** INF-04, ADR-0004 (ver `docs/adr/0004-keycloak-roles.md`).
 
 ---
 
@@ -253,7 +179,7 @@ Consola de administración accesible, token obtenible y realm versionado.
 **Etiquetas:** kafka, opcional
 
 **Descripción:**
-Kafka de un nodo sin Zookeeper. Solo si ADR-03 confirma incluirlo en Fase 1.
+Kafka de un nodo sin Zookeeper. Solo si ADR-0003 confirma incluirlo en Fase 1.
 
 **Checklist:**
 - [ ] Servicio `kafka`
@@ -266,7 +192,7 @@ Kafka de un nodo sin Zookeeper. Solo si ADR-03 confirma incluirlo en Fase 1.
 **Criterio de aceptación:**
 Broker healthy y mensaje de prueba publicado y consumido.
 
-**Dependencias:** INF-03, ADR-03.
+**Dependencias:** INF-03, ADR-0003 (ver `docs/adr/0003-kafka-opcional.md`).
 
 ---
 
