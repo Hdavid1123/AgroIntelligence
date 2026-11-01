@@ -14,7 +14,7 @@ agro-intelligence/
 Implementas:
 - Docker y Docker Compose.
 - PostgreSQL como base de datos principal.
-- MinIO para almacenamiento de archivos e históricos.
+- RustFS para almacenamiento de archivos e históricos.
 - Kafka para comunicación asíncrona, inicialmente opcional.
 - Git y CI/CD.
 - Sistema de autenticación (Keycloak, por ejemplo).
@@ -38,7 +38,7 @@ Responsabilidades:
 - Extraer precios agrícolas.
 - Obtener información climática y económica.
 - Programar extracciones.
-- Guardar los datos originales en MinIO.
+- Guardar los datos originales en RustFS.
 
 Comienza con una sola fuente de precios agrícolas. No intentes integrar todas las fuentes desde el principio.
 

@@ -31,4 +31,4 @@ Permite consultar y analizar la información:
 - Volatilidad.
 - Comparaciones entre productos.
 - Estadísticas regionales.
-El almacenamiento será PostgreSQL para información estructurada y MinIO/S3 para los datos históricos y archivos.
+El almacenamiento será PostgreSQL para información estructurada y RustFS/S3 para los datos históricos y archivos.

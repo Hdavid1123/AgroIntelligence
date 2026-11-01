@@ -21,7 +21,7 @@ htmlcov/
 dist/
 build/
 
-# Docker: datos y volúmenes locales de PostgreSQL, MinIO y Keycloak
+# Docker: datos y volúmenes locales de PostgreSQL, RustFS y Keycloak
 infrastructure/data/
 infrastructure/volumes/
 

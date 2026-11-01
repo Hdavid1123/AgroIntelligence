@@ -66,14 +66,14 @@ Alinear el repositorio con la estructura de `docs/phases.md` y corregir `infraes
 ## Historia
 Como desarrollador, quiero un compose base del entorno local, para levantar la infraestructura con un solo comando y sin configuración manual.
 
-## Criterios de aceptaci�n
-- [ ] Dado el repositorio con `infrastructure/` ya renombrada, cuando se ejecuta `docker compose config`, entonces el archivo es sint�cticamente v�lido.
-- [ ] Dados los servicios definidos (PostgreSQL y MinIO), cuando se ejecuta `docker compose up -d`, entonces los contenedores arrancan sin errores de configuración.
-- [ ] Dado el stack levantado, cuando se ejecuta `docker compose ps`, entonces los servicios aparecen con su estado correcto.
+## Criterios de aceptación
+- [x] Dado el repositorio con `infrastructure/` ya renombrada, cuando se ejecuta `docker compose config`, entonces el archivo es sintácticamente válido.
+- [x] Dados los servicios definidos (PostgreSQL y RustFS), cuando se ejecuta `docker compose up -d`, entonces los contenedores arrancan sin errores de configuración.
+- [x] Dado el stack levantado, cuando se ejecuta `docker compose ps`, entonces los servicios aparecen con su estado correcto.
 
 ## Plan
-- Definir únicamente los servicios que no dependen de decisiones pendientes: PostgreSQL y MinIO.
-- A�adir red dedicada, vol�menes de persistencia y política de reinicio.
+- Definir únicamente los servicios que no dependen de decisiones pendientes: PostgreSQL y RustFS.
+- Añadir red dedicada, volúmenes de persistencia y política de reinicio.
 - Cargar las variables desde `.env` mediante `env_file`.
 - Validar el compose con `docker compose config` y luego con `docker compose up -d`.
 
@@ -82,7 +82,7 @@ Como desarrollador, quiero un compose base del entorno local, para levantar la i
 
 ## Sugerencias (tu decisión)
 - Si más adelante se suman Keycloak o Kafka, se pueden aislar con perfiles de Compose para no obligar a levantarlos siempre.
-- Los healthchecks pueden quedarse en este ticket o moverse a los tickets de cada servicio; conviene elegir una opci�n para no duplicarlos.
+- Los healthchecks se resuelven en INF-04 e INF-05, no en este ticket.
 
 ---
 
@@ -130,21 +130,21 @@ La base de datos es accesible y los datos persisten tras `down/up`.
 
 ---
 
-## INF-05 — MinIO y buckets iniciales
+## INF-05 — RustFS y buckets iniciales
 
 **Etiquetas:** almacenamiento, infraestructura
 
 **Descripción:**
-Servicio MinIO con consola, credenciales por entorno, volumen, healthcheck y creación de buckets iniciales.
+Servicio RustFS con consola, credenciales por entorno, volumen, healthcheck y creación de buckets iniciales.
 
 **Checklist:**
 - [ ] Imagen fijada
 - [ ] Puertos 9000 (API) y 9001 (consola)
-- [ ] `MINIO_ROOT_USER` y `MINIO_ROOT_PASSWORD` desde `.env`
-- [ ] Volumen `minio-data`
-- [ ] Healthcheck `/minio/health/live`
+- [ ] `RUSTFS_ACCESS_KEY` y `RUSTFS_SECRET_KEY` desde `.env`
+- [ ] Volumen `rustfs-data`
+- [ ] Healthcheck `/health` (9000) y `/rustfs/console/health` (9001)
 - [ ] Script de init para los buckets `raw` y `documents`
-- [ ] Probar con la consola o con `mc`
+- [ ] Probar con la consola o con un cliente S3 (`rclone`)
 
 **Criterio de aceptación:**
 Consola accesible, buckets creados y datos persistentes.
@@ -188,7 +188,7 @@ Comandos `up`, `down`, `logs`, `ps`, `health` y `reset`, más una verificación 
 - [ ] `make up`
 - [ ] `make down`
 - [ ] `make logs`
-- [ ] `make health` (PostgreSQL, MinIO y Keycloak)
+- [ ] `make health` (PostgreSQL, RustFS y Keycloak)
 - [ ] `make reset` con confirmación
 - [ ] Documentar en el README
 
@@ -204,11 +204,11 @@ Un comando levanta el stack y reporta la salud de los servicios.
 **Etiquetas:** operación, infraestructura
 
 **Descripción:**
-Scripts para respaldar y restaurar PostgreSQL y MinIO.
+Scripts para respaldar y restaurar PostgreSQL y RustFS.
 
 **Checklist:**
 - [ ] `pg_dump` / `pg_restore`
-- [ ] `mc mirror` para MinIO
+- [ ] `rclone sync` para RustFS
 - [ ] Procedimiento en el README
 - [ ] Prueba de restore
 
@@ -335,7 +335,7 @@ Estos elementos aparecen en la arquitectura, pero no son de Fase 1 y solo genera
 
 # Definition of Done de la Fase 1
 
-- [ ] `docker compose up -d` levanta PostgreSQL, MinIO y Keycloak.
+- [ ] `docker compose up -d` levanta PostgreSQL, RustFS y Keycloak.
 - [ ] Todos los servicios reportan `healthy`.
 - [ ] `docker compose config` es válido.
 - [ ] CI verde en `main`.

@@ -251,12 +251,14 @@ La Fase 1 prepara el entorno para desarrollar y desplegar los componentes. El cr
 |---|---|
 | Contenedores | Docker + Docker Compose |
 | Base de datos | PostgreSQL |
-| Almacenamiento de objetos | MinIO |
+| Almacenamiento de objetos | RustFS (S3) |
 | Autenticación | Keycloak |
 | Comunicación asíncrona | Kafka en modo KRaft (opcional) |
 | CI/CD | GitHub Actions |
 | API Gateway | Diferido (ADR-02) |
 | Orquestación productiva | Kubernetes / Helm / Terraform: futuro |
+
+El detalle del stack local (servicios, puertos, variables y alcance por ticket) está en [Docker Compose del entorno local](infrastructure/docker-compose.md).
 
 ### 3.2 Componentes y fase de introducción
 | Componente | Tecnología | Fase |
@@ -264,7 +266,7 @@ La Fase 1 prepara el entorno para desarrollar y desplegar los componentes. El cr
 | Contenedores | Docker | 1 |
 | Orquestación local | Docker Compose | 1 |
 | Base de datos | PostgreSQL | 1 |
-| Almacenamiento | MinIO | 1 |
+| Almacenamiento | RustFS | 1 |
 | Autenticación | Keycloak | 1 |
 | Comunicación asíncrona | Kafka | 1 (opcional) |
 | CI/CD | GitHub Actions | 1 |
@@ -288,6 +290,7 @@ Las decisiones arquitectónicas se documentan en [`docs/adr/`](adr/README.md):
 - [ADR-0002: Diferir el API Gateway](adr/0002-api-gateway.md)
 - [ADR-0003: Kafka opcional en Fase 1](adr/0003-kafka-opcional.md)
 - [ADR-0004: Keycloak y modelo de roles](adr/0004-keycloak-roles.md)
+- [ADR-0005: RustFS como almacenamiento de objetos en lugar de MinIO](adr/0005-rustfs-almacenamiento-objetos.md)
 
 ## 4. Comunicación de los dominios
 
